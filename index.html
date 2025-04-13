@@ -100,6 +100,7 @@
       <button onclick="login()">Login</button>
       <div class="toggle" onclick="toggleAuth()">Create an account</div>
       <div class="toggle" onclick="showResetBox()">Forgot Password?</div>
+
     </div>
 
     <!-- Signup Box -->
@@ -150,140 +151,183 @@
     </div>
   </div>
 
-  <script>
-    let generatedOTP = null;
-    let countdown = 0;
-    let timer;
+ <script>
+  let generatedOTP = null;
+  let countdown = 0;
+  let timer;
 
-    function toggleVisibility(id) {
-      const input = document.getElementById(id);
-      input.type = input.type === 'password' ? 'text' : 'password';
+  function toggleVisibility(id) {
+    const input = document.getElementById(id);
+    input.type = input.type === 'password' ? 'text' : 'password';
+  }
+
+  function toggleAuth() {
+    document.getElementById('login-box').style.display = 'none';
+    document.getElementById('signup-box').style.display = 'block';
+    document.getElementById('reset-box').style.display = 'none';
+  }
+
+  function showResetBox() {
+    document.getElementById('login-box').style.display = 'none';
+    document.getElementById('signup-box').style.display = 'none';
+    document.getElementById('reset-box').style.display = 'block';
+  }
+
+  function hideResetBox() {
+    document.getElementById('login-box').style.display = 'block';
+    document.getElementById('signup-box').style.display = 'none';
+    document.getElementById('reset-box').style.display = 'none';
+  }
+
+  function login() {
+    const phone = document.getElementById('login-phone').value;
+    const password = document.getElementById('login-password').value;
+    const mpin = document.getElementById('login-mpin').value;
+    const user = JSON.parse(localStorage.getItem('user'));
+
+    if (!user) {
+      alert('No user found. Please sign up first.');
+      return;
     }
 
-    function toggleAuth() {
-      document.getElementById('login-box').style.display = 'none';
-      document.getElementById('signup-box').style.display = 'block';
-      document.getElementById('reset-box').style.display = 'none';
+    if (phone === user.phone && password === user.password && mpin === user.mpin) {
+      alert(`Welcome, ${user.name}! Login successful.`);
+      window.location.href = "recharge.html";
+    } else {
+      alert('Invalid phone number, password, or MPIN.');
+    }
+  }
+
+  function sendOTP() {
+    const phone = document.getElementById('signup-phone').value;
+    if (phone.length === 0) {
+      alert('Please enter a phone number to send OTP.');
+      return;
     }
 
-    function showResetBox() {
-      document.getElementById('login-box').style.display = 'none';
-      document.getElementById('signup-box').style.display = 'none';
-      document.getElementById('reset-box').style.display = 'block';
+    generatedOTP = Math.floor(100000 + Math.random() * 900000).toString();
+    alert('Your OTP is: ' + generatedOTP + ' (sent to phone)');
+    
+    document.getElementById('send-otp-btn').style.display = 'none';
+    document.getElementById('signup-otp').style.display = 'block';
+    document.getElementById('signup-btn').style.display = 'block';
+    document.getElementById('resend-link').style.display = 'inline';
+    startOTPTimer();
+  }
+
+  function resendOTP(type) {
+    const phone = document.getElementById(type === 'reset' ? 'reset-phone' : 'signup-phone').value;
+    if (phone.length === 0) {
+      alert('Please enter a phone number before requesting OTP.');
+      return;
     }
+    generatedOTP = Math.floor(100000 + Math.random() * 900000).toString();
+    alert('Your OTP is: ' + generatedOTP + ' (sent to phone)');
+    startOTPTimer();
+  }
 
-    function hideResetBox() {
-      document.getElementById('login-box').style.display = 'block';
-      document.getElementById('signup-box').style.display = 'none';
-      document.getElementById('reset-box').style.display = 'none';
-    }
+  function startOTPTimer() {
+    countdown = 60;
+    updateResendText();
+    document.getElementById('resend-link').disabled = true;
 
-    function login() {
-      const phone = document.getElementById('login-phone').value;
-      const password = document.getElementById('login-password').value;
-      const mpin = document.getElementById('login-mpin').value;
-      const user = JSON.parse(localStorage.getItem('user'));
-
-      if (!user) {
-        alert('No user found. Please sign up first.');
-        return;
-      }
-
-      if (phone === user.phone && password === user.password && mpin === user.mpin) {
-        alert(`Welcome, ${user.name}! Login successful.`);
-        window.location.href = "recharge.html"; // Redirect to recharge.html on successful login
-      } else {
-        alert('Invalid phone number, password, or MPIN.');
-      }
-    }
-
-    function sendOTP() {
-      const phone = document.getElementById('signup-phone').value;
-      if (phone.length === 0) {
-        alert('Please enter a phone number to send OTP.');
-        return;
-      }
-
-      generatedOTP = Math.floor(100000 + Math.random() * 900000).toString();
-      alert('Your OTP is: ' + generatedOTP + ' (sent to phone)');
-      
-      document.getElementById('send-otp-btn').style.display = 'none'; // Hide Send OTP button
-      document.getElementById('signup-otp').style.display = 'block'; // Show OTP input field
-      document.getElementById('signup-btn').style.display = 'block'; // Show Verify OTP button
-      document.getElementById('resend-link').style.display = 'inline'; // Show Resend OTP link
-
-      startOTPTimer(); // Start the timer for Resend OTP
-    }
-
-    function resendOTP() {
-      const phone = document.getElementById('signup-phone').value;
-      if (phone.length === 0) {
-        alert('Please enter a phone number before requesting OTP.');
-        return;
-      }
-      generatedOTP = Math.floor(100000 + Math.random() * 900000).toString();
-      alert('Your OTP is: ' + generatedOTP + ' (sent to phone)');
-      startOTPTimer();
-    }
-
-    function startOTPTimer() {
-      countdown = 60;
+    timer = setInterval(() => {
+      countdown--;
       updateResendText();
-      document.getElementById('resend-link').disabled = true;
-
-      timer = setInterval(() => {
-        countdown--;
-        updateResendText();
-        if (countdown <= 0) {
-          clearInterval(timer);
-          document.getElementById('resend-link').innerText = 'Resend OTP';
-          document.getElementById('resend-link').disabled = false;
-        }
-      }, 1000);
-    }
-
-    function updateResendText() {
-      document.getElementById('resend-link').innerText = `Resend OTP (${countdown}s)`;
-    }
-
-    function sendResetOTP() {
-      const phone = document.getElementById('reset-phone').value;
-      if (phone.length === 0) {
-        alert('Please enter your phone number to send OTP.');
-        return;
+      if (countdown <= 0) {
+        clearInterval(timer);
+        document.getElementById('resend-link').innerText = 'Resend OTP';
+        document.getElementById('resend-link').disabled = false;
       }
+    }, 1000);
+  }
 
-      generatedOTP = Math.floor(100000 + Math.random() * 900000).toString();
-      alert('Your OTP is: ' + generatedOTP + ' (sent to phone)');
-      
-      document.getElementById('reset-otp').style.display = 'block'; // Show OTP input field
-      document.getElementById('verify-reset-btn').style.display = 'block'; // Show Verify OTP button
-      document.getElementById('reset-resend-link').style.display = 'inline'; // Show Resend OTP link
+  function updateResendText() {
+    document.getElementById('resend-link').innerText = `Resend OTP (${countdown}s)`;
+  }
 
-      startOTPTimer(); // Start the timer for Resend OTP
+  function signup() {
+    const name = document.getElementById('signup-name').value;
+    const email = document.getElementById('signup-email').value;
+    const phone = document.getElementById('signup-phone').value;
+    const password = document.getElementById('signup-password').value;
+    const confirmPassword = document.getElementById('signup-confirm-password').value;
+    const mpin = document.getElementById('signup-mpin').value;
+    const confirmMpin = document.getElementById('signup-confirm-mpin').value;
+    const enteredOTP = document.getElementById('signup-otp').value;
+
+    if (enteredOTP !== generatedOTP) {
+      alert('Invalid OTP.');
+      return;
     }
 
-    function resendOTP(type) {
-      const phone = document.getElementById(type === 'reset' ? 'reset-phone' : 'signup-phone').value;
-      if (phone.length === 0) {
-        alert('Please enter a phone number before requesting OTP.');
-        return;
-      }
-      generatedOTP = Math.floor(100000 + Math.random() * 900000).toString();
-      alert('Your OTP is: ' + generatedOTP + ' (sent to phone)');
-      startOTPTimer();
+    if (password !== confirmPassword) {
+      alert("Passwords don't match.");
+      return;
     }
 
-    function verifyResetOTP() {
-      const enteredOTP = document.getElementById('reset-otp').value;
-      if (enteredOTP === generatedOTP) {
-        alert('OTP verified. You can now reset your password.');
-        document.getElementById('new-password').style.display = 'block';
-        document.getElementById('confirm-new-password').style.display = 'block';
-      } else {
-        alert('Invalid OTP. Please try again.');
-      }
+    if (mpin !== confirmMpin) {
+      alert("MPINs don't match.");
+      return;
     }
-  </script>
+
+    const user = { name, email, phone, password, mpin };
+    localStorage.setItem('user', JSON.stringify(user));
+    alert('Account created successfully! Please login.');
+    document.getElementById('signup-box').style.display = 'none';
+    document.getElementById('login-box').style.display = 'block';
+  }
+
+  function sendResetOTP() {
+    const phone = document.getElementById('reset-phone').value;
+    if (phone.length === 0) {
+      alert('Please enter your phone number to send OTP.');
+      return;
+    }
+
+    generatedOTP = Math.floor(100000 + Math.random() * 900000).toString();
+    alert('Your OTP is: ' + generatedOTP + ' (sent to phone)');
+    
+    document.getElementById('reset-otp').style.display = 'block';
+    document.getElementById('verify-reset-btn').style.display = 'block';
+    document.getElementById('reset-resend-link').style.display = 'inline';
+    startOTPTimer();
+  }
+
+  function verifyResetOTP() {
+    const enteredOTP = document.getElementById('reset-otp').value;
+    if (enteredOTP === generatedOTP) {
+      alert('OTP verified. Please reset your password.');
+      document.getElementById('new-password').parentElement.style.display = 'block';
+      document.getElementById('confirm-new-password').parentElement.style.display = 'block';
+      document.getElementById('verify-reset-btn').style.display = 'none';
+
+      const resetButton = document.createElement('button');
+      resetButton.textContent = 'Reset Password';
+      resetButton.onclick = resetPassword;
+      document.getElementById('reset-box').appendChild(resetButton);
+    } else {
+      alert('Invalid OTP. Please try again.');
+    }
+  }
+
+  function resetPassword() {
+    const newPassword = document.getElementById('new-password').value;
+    const confirmNewPassword = document.getElementById('confirm-new-password').value;
+
+    if (newPassword !== confirmNewPassword) {
+      alert('Passwords do not match.');
+      return;
+    }
+
+    const user = JSON.parse(localStorage.getItem('user'));
+    user.password = newPassword;
+    localStorage.setItem('user', JSON.stringify(user));
+
+    alert('Password has been reset. Please login.');
+    hideResetBox();
+  }
+</script>
+
 </body>
 </html>
