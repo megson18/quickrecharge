@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QuickRecharge</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to right, #2193b0, #6dd5ed);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      width: 300px;
+      text-align: center;
+    }
+
+    form input, form select, form button {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+    }
+
+    .phone-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .country-code {
+      background-color: #f1f1f1;
+      padding: 10px;
+      border-radius: 8px 0 0 8px;
+      border: 1px solid #ccc;
+      font-weight: bold;
+      font-size: 16px;
+      width: 40px;
+      text-align: center;
+    }
+
+    .phone-number {
+      width: calc(100% - 50px);
+      padding-left: 5px;
+      border-radius: 0 8px 8px 0;
+    }
+
+    button {
+      background-color: #28a745;
+      color: white;
+      border: none;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #218838;
+    }
+
+    .forgot-mpin {
+      color: #007bff;
+      cursor: pointer;
+      font-size: 14px;
+      text-decoration: underline;
+    }
+
+    .circle-container {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .circle-container label {
+      font-size: 16px;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    .qr-container {
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    #upiSection {
+      display: none;
+    }
+
+    #successMessage {
+      display: none;
+      font-size: 18px;
+      color: green;
+      margin-top: 20px;
+    }
+
+    .upi-id {
+      font-size: 16px;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+
+    #qrCode {
+      margin-top: 10px;
+      display: block;
+      max-width: 200px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    /* Modal Style */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-content {
+      background-color: white;
+      padding: 20px;
+      border-radius: 10px;
+      width: 300px;
+      text-align: center;
+    }
+
+    .modal button {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      padding: 10px;
+      width: 100%;
+      cursor: pointer;
+      border-radius: 8px;
+    }
+
+    .otp-input-container {
+      margin-bottom: 10px;
+    }
+
+    .otp-input {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+    }
+
+    .mpin-input-container {
+      display: none;
+    }
+
+    .mpin-input {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+      maxlength: 4;
+      pattern: "\d{4}";
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>QuickRecharge</h1>
+    <p>Recharge your mobile in seconds!</p>
+    
+    <form id="rechargeForm">
+      <!-- Mobile Number -->
+      <div class="phone-container">
+        <div class="country-code">+91</div>
+        <input
+          class="phone-number"
+          type="text"
+          placeholder="Enter Mobile Number"
+          pattern="\d{10}"
+          maxlength="10"
+          required
+          title="Enter a valid 10-digit mobile number">
+      </div>
+
+      <!-- Operator -->
+      <select id="operator" required>
+        <option value="">Select Operator</option>
+        <option value="airtel">Airtel</option>
+        <option value="jio">Jio</option>
+        <option value="vi">VI</option>
+      </select>
+
+      <!-- Jio Plans -->
+      <select id="jioPlans" style="display: none;" required>
+        <option value="">Select Jio Plan</option>
+        <option value="19">₹19</option>
+        <option value="49">₹49</option>
+        <option value="199">₹199</option>
+        <option value="299">₹299</option>
+        <option value="349">₹349</option>
+        <option value="399">₹399</option>
+        <option value="489">₹489</option>
+        <option value="799">₹799</option>
+        <option value="899">₹899</option>
+        <option value="999">₹999</option>
+        <option value="3599">₹3599</option>
+        <option value="3999">₹3999</option>
+      </select>
+
+      <!-- Airtel Plans -->
+      <select id="airtelPlans" style="display: none;" required>
+        <option value="">Select Airtel Plan</option>
+        <option value="22">₹22</option>
+        <option value="49">₹49</option>
+        <option value="199">₹199</option>
+        <option value="299">₹299</option>
+        <option value="349">₹349</option>
+        <option value="355">₹355</option>
+        <option value="589">₹589</option>
+        <option value="649">₹649</option>
+        <option value="799">₹799</option>
+        <option value="859">₹859</option>
+        <option value="1199">₹1199</option>
+        <option value="3599">₹3599</option>
+        <option value="3999">₹3999</option>
+      </select>
+
+      <!-- VI Plans -->
+      <select id="viPlans" style="display: none;" required>
+        <option value="">Select VI Plan</option>
+        <option value="26">₹26</option>
+        <option value="33">₹33</option>
+        <option value="48">₹48</option>
+        <option value="199">₹199</option>
+        <option value="218">₹218</option>
+        <option value="249">₹249</option>
+        <option value="299">₹299</option>
+        <option value="369">₹369</option>
+        <option value="379">₹379</option>
+        <option value="579">₹579</option>
+        <option value="759">₹759</option>
+        <option value="859">₹859</option>
+        <option value="1049">₹1049</option>
+        <option value="1999">₹1999</option>
+        <option value="3799">₹3799</option>
+      </select>
+
+      <!-- Circle Selection -->
+      <div class="circle-container">
+        <select id="circle" required>
+          <option value="">Select Circle</option>
+          <option value="haryana">Haryana</option>
+          <option value="odisha">Odisha</option>
+          <option value="bihar">Bihar</option>
+          <option value="north_east">North East</option>
+          <option value="kerala">Kerala</option>
+          <option value="rajasthan">Rajasthan</option>
+          <option value="uttar_pradesh">Uttar Pradesh</option>
+        </select>
+      </div>
+
+      <!-- MPIN -->
+      <input
+        type="password"
+        pattern="\d{4}"
+        maxlength="4"
+        placeholder="Enter 4-digit MPIN"
+        required
+        title="Enter a 4-digit numeric MPIN">
+
+      <!-- Forgot MPIN -->
+      <div class="forgot-mpin" onclick="forgotMpin()">Forgot MPIN?</div>
+
+      <!-- Submit -->
+      <button type="submit">Recharge Now</button>
+    </form>
+
+    <!-- UPI Payment Section -->
+    <div id="upiSection">
+      <h2>Pay via UPI</h2>
+      <p class="upi-id">UPI ID: <span id="upiId">megson@sbi</span></p>
+      <div class="qr-container">
+        <img id="qrCode" src="" alt="UPI QR Code">
+      </div>
+      <button onclick="completePayment()">I Have Paid</button>
+    </div>
+
+    <!-- Success Message -->
+    <div id="successMessage">
+      <p>Recharge successful! 🎉</p>
+    </div>
+  </div>
+
+  <!-- Modal for Forgot MPIN -->
+  <div id="forgotMpinModal" class="modal">
+    <div class="modal-content">
+      <h3>Enter Mobile Number</h3>
+      <input
+        type="text"
+        id="mobileNumberInput"
+        pattern="\d{10}"
+        maxlength="10"
+        placeholder="Enter your mobile number"
+        required
+        title="Enter a valid 10-digit mobile number">
+      <button onclick="sendOtp()">Send OTP</button>
+    </div>
+  </div>
+
+  <!-- OTP Verification Modal -->
+  <div id="otpVerificationModal" class="modal">
+    <div class="modal-content">
+      <h3>Enter OTP</h3>
+      <input
+        type="text"
+        id="otpInput"
+        class="otp-input"
+        maxlength="6"
+        placeholder="Enter OTP"
+        required>
+      <button onclick="verifyOtp()">Verify OTP</button>
+    </div>
+  </div>
+
+  <!-- MPIN Reset Modal -->
+  <div id="mpinResetModal" class="modal">
+    <div class="modal-content">
+      <h3>Reset MPIN</h3>
+      <input
+        type="password"
+        id="newMpin"
+        class="mpin-input"
+        maxlength="4"
+        placeholder="Enter New MPIN"
+        required>
+      <button onclick="resetMpin()">Reset MPIN</button>
+    </div>
+  </div>
+
+  <script>
+    const operatorSelect = document.getElementById("operator");
+    const jioPlans = document.getElementById("jioPlans");
+    const airtelPlans = document.getElementById("airtelPlans");
+    const viPlans = document.getElementById("viPlans");
+    const qrCode = document.getElementById("qrCode");
+    const upiSection = document.getElementById("upiSection");
+    const successMessage = document.getElementById("successMessage");
+    const forgotMpinModal = document.getElementById("forgotMpinModal");
+    const mobileNumberInput = document.getElementById("mobileNumberInput");
+    const otpVerificationModal = document.getElementById("otpVerificationModal");
+    const otpInput = document.getElementById("otpInput");
+    const mpinResetModal = document.getElementById("mpinResetModal");
+    const newMpin = document.getElementById("newMpin");
+
+    operatorSelect.addEventListener("change", function () {
+      const op = operatorSelect.value;
+
+      jioPlans.style.display = op === "jio" ? "block" : "none";
+      airtelPlans.style.display = op === "airtel" ? "block" : "none";
+      viPlans.style.display = op === "vi" ? "block" : "none";
+
+      jioPlans.required = op === "jio";
+      airtelPlans.required = op === "airtel";
+      viPlans.required = op === "vi";
+
+      if (op !== "jio") jioPlans.value = "";
+      if (op !== "airtel") airtelPlans.value = "";
+      if (op !== "vi") viPlans.value = "";
+    });
+
+    document.getElementById("rechargeForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+
+      const plan = getSelectedPlan();
+      const amount = plan.amount;
+
+      // Show UPI section and QR code
+      upiSection.style.display = "block";
+
+      // Generate QR code with the amount based on selected plan
+      generateQRCode(amount);
+    });
+
+    function getSelectedPlan() {
+      const op = operatorSelect.value;
+      let selectedPlan = { amount: 0 };
+
+      if (op === "jio") {
+        selectedPlan.amount = parseInt(jioPlans.value);
+      } else if (op === "airtel") {
+        selectedPlan.amount = parseInt(airtelPlans.value);
+      } else if (op === "vi") {
+        selectedPlan.amount = parseInt(viPlans.value);
+      }
+
+      return selectedPlan;
+    }
+
+    function generateQRCode(amount) {
+      const upiID = "9862783748@ptsbi"; // UPI ID for payment
+      const upiURL = `upi://pay?pa=${upiID}&pn=QuickRecharge&mc=0000&tid=12345&tn=Recharge%20of%20₹${amount}&am=${amount}&cu=INR`;
+      
+      // Set the QR code URL dynamically
+      const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(upiURL)}&size=200x200`;
+      qrCode.src = qrImageUrl;
+    }
+
+    function completePayment() {
+      // Payment successful
+      successMessage.style.display = "block";
+    }
+
+    function forgotMpin() {
+      forgotMpinModal.style.display = "flex";
+    }
+
+    function sendOtp() {
+      const mobileNumber = mobileNumberInput.value;
+      
+      if (mobileNumber.length !== 10 || isNaN(mobileNumber)) {
+        alert("Please enter a valid 10-digit mobile number.");
+        return;
+      }
+
+      const otp = Math.floor(100000 + Math.random() * 900000);
+      alert(`An OTP has been sent to ${mobileNumber}. OTP: ${otp}`);
+      
+      forgotMpinModal.style.display = "none"; // Close the modal after sending OTP
+      otpVerificationModal.style.display = "flex"; // Show OTP verification modal
+    }
+
+    function verifyOtp() {
+      const otpEntered = otpInput.value;
+      
+      if (otpEntered.length !== 6 || isNaN(otpEntered)) {
+        alert("Please enter a valid 6-digit OTP.");
+        return;
+      }
+
+      // In a real scenario, you would verify OTP here. For simplicity, we'll assume OTP is correct.
+      otpVerificationModal.style.display = "none"; // Close OTP modal
+      mpinResetModal.style.display = "flex"; // Show MPIN reset modal
+    }
+
+    function resetMpin() {
+      const newMpinValue = newMpin.value;
+
+      if (newMpinValue.length !== 4 || isNaN(newMpinValue)) {
+        alert("Please enter a valid 4-digit MPIN.");
+        return;
+      }
+
+      alert("MPIN reset successfully!");
+      mpinResetModal.style.display = "none"; // Close MPIN reset modal
+    }
+  </script>
+</body>
+</html>
